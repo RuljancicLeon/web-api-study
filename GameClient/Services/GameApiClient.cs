@@ -31,7 +31,7 @@ public class GameApiClient
 {
     private readonly HttpClient _http;
 
-    public GameApiClient(string baseUrl = "http://localhost:5000")
+    public GameApiClient(string baseUrl = "http://localhost:5078")
     {
         _http = new HttpClient { BaseAddress = new Uri(baseUrl) };
     }

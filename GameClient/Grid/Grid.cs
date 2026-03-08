@@ -9,6 +9,7 @@ namespace GameClient.Grid;
 public class Grid
 {
     private readonly GridCell[,] _cells;
+    private readonly bool[,] _occupied;
 
     public int Rows { get; }
     public int Columns { get; }
@@ -24,6 +25,7 @@ public class Grid
         CellSize = cellSize;
         Origin = origin;
         _cells = new GridCell[rows, columns];
+        _occupied = new bool[rows, columns];
 
         for (int r = 0; r < rows; r++)
             for (int c = 0; c < columns; c++)
@@ -39,6 +41,7 @@ public class Grid
     public void ToggleCell(int row, int col)
     {
         if (!InBounds(row, col)) return;
+        if (_occupied[row, col]) return;
         _cells[row, col].Toggle();
     }
 
@@ -52,7 +55,10 @@ public class Grid
     {
         for (int r = 0; r < Rows; r++)
             for (int c = 0; c < Columns; c++)
+            {
                 _cells[r, c] = new GridCell();
+                _occupied[r, c] = false;
+            }
     }
 
     // ── Coordinate helpers ─────────────────────────────────────────────────────
@@ -72,9 +78,30 @@ public class Grid
     public bool InBounds(int row, int col) =>
         row >= 0 && row < Rows && col >= 0 && col < Columns;
 
+    /// <summary>Returns true if the cell is in bounds, not a wall, and not occupied by an entity.</summary>
+    public bool IsWalkable(int row, int col) =>
+        InBounds(row, col) && !_cells[row, col].IsAlive && !_occupied[row, col];
+
+    // ── Occupancy tracking ─────────────────────────────────────────────────────
+
+    /// <summary>Marks a cell as occupied by an entity.</summary>
+    public void Occupy(int row, int col)
+    {
+        if (InBounds(row, col)) _occupied[row, col] = true;
+    }
+
+    /// <summary>Marks a cell as no longer occupied.</summary>
+    public void Vacate(int row, int col)
+    {
+        if (InBounds(row, col)) _occupied[row, col] = false;
+    }
+
+    public bool IsOccupied(int row, int col) =>
+        InBounds(row, col) && _occupied[row, col];
+
     /// <summary>Returns the screen-space rectangle for a given cell.</summary>
     public Rectangle GetCellRect(int row, int col) =>
-        new Rectangle(
+        new(
             (int)Origin.X + col * CellSize,
             (int)Origin.Y + row * CellSize,
             CellSize,
